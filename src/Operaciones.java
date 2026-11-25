@@ -28,7 +28,7 @@ public final class Operaciones
         if(e.tipo==Estado.Tipo.HashSet)     // Comprueba si la estructura activa en el estado es HashSet
         {
             
-            if(id==null)return null;    // Evita llamar a equals sobre un id nulo y devuelve null si no hay id
+            if(id==null)return null;     // Evita llamar a equals sobre un id nulo y devuelve null si no hay id
             
             for(Persona p:e.personas.conjunto) // Recorre todas las personas almacenadas en el HashSet (e.personas.conjunto). 
                 if(p.id.equals(id)) 
@@ -39,6 +39,22 @@ public final class Operaciones
 
         /*****************************************/
         /************** Fin HashSet **************/
+        /*****************************************/
+
+        /*****************************************/
+        /************ Inicio HashMap *************/
+        /*****************************************/
+
+        if(e.tipo==Estado.Tipo.HashMap) // Revisamos si el programa está trabajando con HashMap
+        {
+            if(id==null) // Si nos pasan un id nulo, salimos de una vez
+                return null; // Devolvemos null sin error para no romper la búsqueda
+
+            return e.personas.mapa.get(id); // Buscamos directo por clave (id) en el mapa y devolvemos la Persona (o null si no está)
+        }
+
+        /*****************************************/
+        /************** Fin HashMap **************/
         /*****************************************/
     
         // TODO: resolver con la estructura activa elegida. Devolver null si no existe.
@@ -108,6 +124,30 @@ public final class Operaciones
         /*****************************************/
         /************** Fin HashSet **************/
         /*****************************************/
+
+        /*****************************************/
+        /************ Inicio HashMap *************/
+        /*****************************************/
+
+        if(e.tipo==Estado.Tipo.HashMap) // Revisamos si la estructura activa es HashMap
+        {
+            if(idPersona==null || codigoPais==null) // Verificamos que tanto el id de la persona como el código de país existan (no sean null)
+                return false; // Si falta algún dato, rechazamos el cambio y devolvemos false
+
+            if(!e.paises.mapa.containsKey(codigoPais)) // Comprobamos si el país destino está registrado en el mapa de países
+                return false; // Si el país no existe, no tocamos nada y devolvemos false
+
+            Persona actual=e.personas.mapa.get(idPersona); // Consultamos a la persona actual usando su id como clave en el mapa
+            if(actual==null || actual.codigoPais.equals(codigoPais)) // Revisamos que la persona exista y que de verdad vaya a cambiar de país
+                return false; // Si no existe o ya tiene ese mismo país, devolvemos false sin hacer cambios
+
+            e.personas.mapa.put(idPersona,new Persona(actual.id,actual.nombre,codigoPais)); // Como Persona es inmutable, guardamos una copia nueva con el país corregido manteniendo id, nombre e inscripciones
+            return true; // Avisamos que el país se actualizó bien
+        }
+
+        /*****************************************/
+        /************** Fin HashMap **************/
+        /*****************************************/
         
         // TODO: validar país/persona y reemplazar la persona manteniendo su identidad.
         throw pendiente(e,"corregirPais");
@@ -149,7 +189,33 @@ public final class Operaciones
         /*****************************************/
         /************** Fin HashSet **************/
         /*****************************************/
-        
+
+        /*****************************************/
+        /************ Inicio HashMap *************/
+        /*****************************************/
+
+        if(e.tipo==Estado.Tipo.HashMap) // Revisamos si la estructura activa es HashMap
+        {
+            if(codigo==null || codigo.trim().isEmpty() || actividad==null || !Datos.ACTIVIDADES.contains(actividad)) // Validamos que el código no esté vacío y que la actividad sea una de las permitidas
+                return false; // Si el código o la actividad no son válidos, no registramos nada
+
+            if(idPersona==null || buscarPersona(e,idPersona)==null) // Verificamos que la persona exista antes de inscribirla
+                return false; // Si la persona no existe, devolvemos false sin crear personas ni países
+
+            if(e.inscripciones.mapa.containsKey(codigo)) // Revisamos si ya existe una inscripción con ese mismo código
+                return false; // No permitimos códigos de inscripción repetidos
+
+            for(Inscripcion ins:e.inscripciones.mapa.values()) // Recorremos las inscripciones actuales para revisar duplicados de persona + actividad
+                if(ins.idPersona.equals(idPersona) && ins.actividad.equals(actividad)) // Si la persona ya está inscrita en esa actividad...
+                    return false; // ...rechazamos la inscripción duplicada
+
+            e.inscripciones.mapa.put(codigo,new Inscripcion(codigo,idPersona,actividad)); // Guardamos solo la nueva inscripción en el mapa usando su código como clave
+            return true; // Confirmamos que la inscripción quedó registrada
+        }
+
+        /*****************************************/
+        /************** Fin HashMap **************/
+        /*****************************************/
         
         // TODO: validar persona, código único, actividad válida y combinación persona/actividad única.
         // Agregar solo la inscripción: no duplicar Persona ni Pais.
@@ -194,9 +260,26 @@ public final class Operaciones
         /************** Fin HashSet **************/
         /*****************************************/
 
+        /*****************************************/
+        /************ Inicio HashMap *************/
+        /*****************************************/
+
+        if(e.tipo==Estado.Tipo.HashMap) // Revisamos si la estructura activa es HashMap
+        {
+            if(codigo==null) // Si no llega un código válido (es null), no hay nada que borrar
+                return false; // Devolvemos false sin tocar el mapa
+
+            return e.inscripciones.mapa.remove(codigo)!=null; // Quitamos solo la inscripción del mapa (sin borrar ni a la persona ni al país) y devolvemos true si existía
+        }
+
+        /*****************************************/
+        /************** Fin HashMap **************/
+        /*****************************************/
+
         // TODO: eliminar solo la inscripción. Conservar persona y país, aun sin otras inscripciones.
         throw pendiente(e,"cancelarInscripcion");
     }
+
     public static Map<String,Integer> contarPersonasPorPais(Estado e) {
         if(e.tipo==Estado.Tipo.ArrayList) {
             Map<String,Integer> resultado=new TreeMap<>();
@@ -224,7 +307,6 @@ public final class Operaciones
                 
                 if (actual != null) 
                     resultado.put(persona.codigoPais, actual + 1);  // Si el código de país existe en el mapa, incrementa su contador en 1
-            
             }
             
             return resultado;   // Devuelve el mapa auxiliar sin modificar las colecciones activas
@@ -234,15 +316,34 @@ public final class Operaciones
         /*****************************************/
         /************** Fin HashSet **************/
         /*****************************************/
+
+        /*****************************************/
+        /************ Inicio HashMap *************/
+        /*****************************************/
+
+        if(e.tipo==Estado.Tipo.HashMap) // Revisamos si la estructura activa es HashMap
+        {
+            Map<String,Integer> resultado=new TreeMap<>(); // Creamos un mapa auxiliar ordenado para devolver el conteo final por país
+
+            for(String codPais:e.paises.mapa.keySet()) // Recorremos todos los códigos de país registrados
+                resultado.put(codPais,0); // Arrancamos cada país en 0, así también aparecen países con 0 personas
+
+            for(Persona persona:e.personas.mapa.values()) // Recorremos cada persona única (sin importar cuántas inscripciones tenga o si no tiene ninguna)
+            {
+                Integer actual=resultado.get(persona.codigoPais); // Tomamos el conteo que lleva ese país hasta ahora
+                if(actual!=null) // Si el país de la persona está en nuestro mapa de resultados...
+                    resultado.put(persona.codigoPais,actual+1); // ...le sumamos 1 persona
+            }
+
+            return resultado; // Entregamos el mapa con los totales sin modificar las colecciones del programa
+        }
+
+        /*****************************************/
+        /************** Fin HashMap **************/
+        /*****************************************/
         
         // TODO: contar PERSONAS únicas por país; incluir quienes no tengan inscripción.
         // El mapa devuelto es un resultado auxiliar, no reemplaza las colecciones activas.
         throw pendiente(e,"contarPersonasPorPais");
     }
-    
-    
-    
-    
-    
-    
 }
