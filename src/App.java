@@ -63,7 +63,42 @@ public final class App extends JPanel {
         agregarCampo(formulario,"Código de nueva inscripción",nuevaInscripcion);agregarCampo(formulario,"Actividad",actividad);
         JButton registrar=boton("Registrar inscripción");registrar.setName("libre_registrar");registrar.addActionListener(ev->operarLibre(Flujo.Metodo.REGISTRAR));agregarBoton(formulario,registrar);
         agregarCampo(formulario,"Código de inscripción a cancelar",codigoCancelar);
-        JButton cancelar=boton("Cancelar inscripción");cancelar.setName("libre_cancelar");cancelar.addActionListener(ev->operarLibre(Flujo.Metodo.CANCELAR));agregarBoton(formulario,cancelar);
+        
+
+//JButton cancelar=boton("Cancelar inscripción");cancelar.setName("libre_cancelar");cancelar.addActionListener(ev->operarLibre(Flujo.Metodo.CANCELAR));agregarBoton(formulario,cancelar);
+
+        /*************************************************************/
+        /******** Modificar cancelar inscripción *********************/
+        /*************************************************************/
+
+        JButton cancelar=boton("Cancelar inscripción");
+        cancelar.setName("libre_cancelar");
+        cancelar.addActionListener(ev->{
+        String codigo=codigoCancelar.getText().trim();
+    
+        if(codigo.isEmpty()) 
+        {
+            JOptionPane.showMessageDialog(this,"Ingrese o seleccione el código de inscripción que desea cancelar.","Código requerido",JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+    
+        int opcion=JOptionPane.showConfirmDialog(this,"¿Desea continuar y cancelar la inscripción "+codigo+"?","Confirmar cancelación de inscripción",JOptionPane.YES_NO_OPTION,JOptionPane.WARNING_MESSAGE);
+        
+        if(opcion==JOptionPane.YES_OPTION) 
+        {
+            operarLibre(Flujo.Metodo.CANCELAR);
+        }else 
+        {
+            salidaLibre.setText("Cancelación abortada por el usuario. No se modificó la inscripción "+codigo+".");
+        }
+        });
+        agregarBoton(formulario,cancelar);
+
+        /*****************************************************************/
+        /******** Fin Modificar cancelar inscripción *********************/
+        /*****************************************************************/
+
+        
         JButton contar=boton("Contar personas por país");contar.setName("libre_contar");contar.addActionListener(ev->operarLibre(Flujo.Metodo.CONTAR));agregarBoton(formulario,contar);
         JButton todas=boton("Ver todas las personas");todas.addActionListener(ev->{filtros.remove(estadoLibre().tipo);actualizar();entidades.setSelectedIndex(0);});agregarBoton(formulario,todas);
         JButton restaurar=boton("Restaurar datos de uso libre");restaurar.addActionListener(ev->{Estado e=estadoLibre();e.reiniciar(datos);filtros.remove(e.tipo);conteos.remove(e.tipo);informesLibres.remove(e.tipo);actualizar();});agregarBoton(formulario,restaurar);
